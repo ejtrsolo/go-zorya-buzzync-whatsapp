@@ -1,3 +1,3 @@
 module github.com/ejtrsolo/go-zorya-buzzync-whatsapp
 
-go 1.24.0
+go 1.23.2
