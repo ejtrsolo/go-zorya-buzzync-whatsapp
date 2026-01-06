@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/ejtrsolo/go-zorya-buzzync-whatsapp/tools"
@@ -98,9 +99,22 @@ func (s *ZoryaService) SendWhatsAppTemplateMessage(req WhatsAppMessageRequest) (
 		"Authorization": "Bearer " + s.Token,
 	}
 
-	response := tools.ConsultClient(s.BaseURL+"/api/v1/WhatsApp/messages", "POST", headers, bytes.NewBuffer(jsonData), true)
+	url := s.BaseURL + "/api/v1/WhatsApp/messages"
+
+	// Log de los parámetros de la petición
+	log.Printf("[ZORYA] Request URL: %s", url)
+	log.Printf("[ZORYA] Request Method: POST")
+	log.Printf("[ZORYA] Request Headers: %+v", headers)
+	log.Printf("[ZORYA] Request Body: %s", string(jsonData))
+
+	response := tools.ConsultClient(url, "POST", headers, bytes.NewBuffer(jsonData), true)
+
+	// Log de la respuesta (opcional)
+	log.Printf("[ZORYA] Response Status: %v", response.Data["status_code"])
+	log.Printf("[ZORYA] Response Success: %v", response.Success)
 
 	if !response.Success {
+		log.Printf("[ZORYA] Response Error: %s", response.Message)
 		return nil, fmt.Errorf("send message failed: %s", response.Message)
 	}
 
@@ -116,8 +130,10 @@ func (s *ZoryaService) SendWhatsAppTemplateMessage(req WhatsAppMessageRequest) (
 
 	statusCode := response.Data["status_code"].(int)
 	if statusCode != http.StatusOK && statusCode != http.StatusCreated {
+		log.Printf("[ZORYA] Error Status Code: %d, Response: %s", statusCode, bodyStr)
 		return &sendResp, fmt.Errorf("send message failed with status: %d", statusCode)
 	}
 
+	log.Printf("[ZORYA] Message sent successfully")
 	return &sendResp, nil
 }
